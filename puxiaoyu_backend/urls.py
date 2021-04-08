@@ -21,4 +21,5 @@ urlpatterns = [
     path('login/', views.login),
     path('createAccount/', views.createAccount),
     path('getInfo1/', views.getInfo1),
+    path('profileInfo/', views.profileInfo),
 ]

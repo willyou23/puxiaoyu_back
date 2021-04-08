@@ -14,7 +14,7 @@ def login(request):
         if request.POST.get("password") == query.password:
             date = datetime.now().date()
             # print((date-query.date).days)
-            if not query.cookie or (date-query.date).days > 7:  # update cookie if needed
+            if not query.cookie or (date - query.date).days > 7:  # update cookie if needed
                 query.cookie = staticFunc.get_random_number_str(20)
                 query.save()
                 print("update cookie successfully")
@@ -54,6 +54,46 @@ def getInfo1(request):
         if (date - query.date).days > 7:  # update cookie if needed
             return JsonResponse(json.dumps({"validation": False, "mes": "login expired"}), safe=False)
         return JsonResponse(json.dumps({'username': query.username, "validation": True}), safe=False)
+    except Exception as e:
+        print(e)
+    return JsonResponse(json.dumps({"validation": False}), safe=False)
+
+
+# use cookie to get user information  and form the profile
+def profileInfo(request):
+    cookie = request.POST.get('cookie')
+    try:
+        query = models.User.objects.filter(cookie=cookie)[0]
+        date = datetime.now().date()
+        if (date - query.date).days > 7:  # update cookie if needed
+            return JsonResponse(json.dumps({"validation": False, "mes": "login expired"}), safe=False)
+        return JsonResponse(json.dumps({'username': query.username,
+                                        "phoneNumber": query.phoneNumber,
+                                        "email": query.email,
+                                        "balance": float(query.balance),
+                                        "validation": True}), safe=False)
+    except Exception as e:
+        print(e)
+    return JsonResponse(json.dumps({"validation": False}), safe=False)
+
+
+# reset password view, compare old function firstly, and reset password if precondition is right.
+def resetPassword(request):
+    cookie = request.POST.get('cookie')
+    oldPassword = request.POST.get('oldPassword')
+    newPassword = request.POST.get('newPassword')
+    try:
+        query = models.User.objects.filter(cookie=cookie)[0]
+        date = datetime.now().date()
+        if (date - query.date).days > 7:  # update cookie if needed
+            return JsonResponse(json.dumps({"validation": False, "mes": "login expired"}), safe=False)
+        if query.password == oldPassword:
+            query.password = newPassword
+            query.save()
+        else:
+            return JsonResponse(json.dumps({"validation": False, "mes": "old password incorrect"}), safe=False)
+        return JsonResponse(json.dumps({"validation": True}), safe=False)
+
     except Exception as e:
         print(e)
     return JsonResponse(json.dumps({"validation": False}), safe=False)

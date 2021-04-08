@@ -11,8 +11,7 @@ class User(models.Model):
     balance = models.DecimalField(max_digits=20, decimal_places=5, default=0.0)
     description = models.CharField(max_length=1000, null=True)
     cookie = models.CharField(max_length=20, null=True)
-
-    # 用户的地址存储
+    phoneNumber = models.CharField(max_length=20, null=True)
 
 
 class Useraddr(models.Model):
