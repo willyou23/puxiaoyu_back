@@ -38,20 +38,20 @@ class User:
             self.info = query[0]
             self.validation = True
         else:
-            return JsonResponse(json.dumps({"validation": False}), safe=False)
+            return {"validation": False}
         if password == self.info.password:
             date = datetime.now().date()
             if not self.info.cookie or (date - self.info.date).days > 7:  # update cookie if needed
                 self.info.cookie = staticFunc.get_random_number_str(20)
                 self.info.save()
-            return JsonResponse(json.dumps({'cookie': self.info.cookie, "validation": self.validation}), safe=False)
+            return {'cookie': self.info.cookie, "validation": self.validation}
         else:
-            return JsonResponse(json.dumps({"validation": False}), safe=False)
+            return {"validation": False}
 
     # Create Account
     def createAccount(self, username, email, password):
         if models.User.objects.filter(username=username) or models.User.objects.filter(email=email):
-            return JsonResponse(json.dumps({"validation": self.validation}), safe=False)
+            return {"validation": self.validation}
         else:
             self.cookie = staticFunc.get_random_number_str(20)
             models.User.objects.create(
@@ -64,7 +64,7 @@ class User:
                 cookie=self.cookie
             )
             self.testExist()  # change validation and self.info
-            return JsonResponse(json.dumps({"validation": self.validation, 'cookie': self.cookie}), safe=False)
+            return {"validation": self.validation, 'cookie': self.cookie}
 
     # get two password, one for compare/confirm and the other one for reset
     def resetPassword(self, oldPassword, newPassword):
@@ -72,46 +72,48 @@ class User:
             if self.info.password == oldPassword:
                 self.info.password = newPassword
                 self.info.save()
-                return JsonResponse(json.dumps({"validation": True}), safe=False)
+                return {"validation": True}
             else:
-                return JsonResponse(json.dumps({"validation": False, "mes": "old password incorrect"}), safe=False)
+                return {"validation": False, "mes": "old password incorrect"}
         elif not self.validation:
-            return JsonResponse(json.dumps({"validation": self.validation, "mes": "no user exist"}), safe=False)
+            return {"validation": self.validation, "mes": "no user exist"}
         elif not self.testOutdated():
-            return JsonResponse(json.dumps({"validation": self.validation, "mes": "login expired"}), safe=False)
+            return {"validation": self.validation, "mes": "login expired"}
 
     # get information of user and return them (different requirement)
     def getProfileInfo(self, whole=True):
         if self.validation and self.testOutdated():
             if whole:
-                return JsonResponse(json.dumps({'username': self.info.username,
-                                                "phoneNumber": self.info.phoneNumber,
-                                                "email": self.info.email,
-                                                "balance": float(self.info.balance),
-                                                "validation": self.validation}), safe=False)
+                return {'username': self.info.username,
+                        "phoneNumber": self.info.phoneNumber,
+                        "email": self.info.email,
+                        'id': self.info.id,
+                        "address": self.info.address,
+                        "balance": float(self.info.balance),
+                        "validation": self.validation}
             else:
-                return JsonResponse(json.dumps({'username': self.info.username,
-                                                "validation": self.validation}), safe=False)
+                return {'username': self.info.username,
+                        'id': self.info.id,
+                        "validation": self.validation}
         elif not self.validation:
-            return JsonResponse(json.dumps({"validation": self.validation}), safe=False)
+            return {"validation": self.validation}
         elif not self.testOutdated():
-            return JsonResponse(json.dumps({"validation": self.validation, "mes": "login expired"}), safe=False)
+            return {"validation": self.validation, "mes": "login expired"}
 
-    def updateProfileInfo(self, username, phoneNumber, email):
+    def updateProfileInfo(self, username, phoneNumber, email, address):
         if self.validation and self.testOutdated():
             self.info.username = username
             self.info.phoneNumber = phoneNumber
             self.info.email = email
+            self.info.address = address
             self.info.save()
-            return JsonResponse(json.dumps({'username': self.info.username,
-                                            "phoneNumber": self.info.phoneNumber,
-                                            "email": self.info.email,
-                                            "balance": float(self.info.balance),
-                                            "validation": self.validation}), safe=False)
+            return {'username': self.info.username,
+                    "phoneNumber": self.info.phoneNumber,
+                    "email": self.info.email,
+                    "address": self.info.address,
+                    "balance": float(self.info.balance),
+                    "validation": self.validation}
         elif not self.validation:
-            return JsonResponse(json.dumps({"validation": self.validation}), safe=False)
+            return {"validation": self.validation}
         elif not self.testOutdated():
-            return JsonResponse(json.dumps({"validation": self.validation, "mes": "login expired"}), safe=False)
-
-
-
+            return {"validation": self.validation, "mes": "login expired"}
