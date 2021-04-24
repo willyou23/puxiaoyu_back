@@ -27,7 +27,7 @@ class GoodsInfo(models.Model):
     # 商品的价格
     price = models.DecimalField(default=0.00, max_digits=10, decimal_places=2)
     # 商品的描述
-    desc = models.TextField(max_length=1000, null=True)
+    desc = models.TextField(null=True)
     # 商品的库存
     inventory = models.IntegerField(default=1, null=True, blank=True)
     # 本商品对应的用户
@@ -47,12 +47,19 @@ class Img(models.Model):
 
 class OrderInfo(models.Model):
     id = models.AutoField(primary_key=True)
-    CustomerId = models.ForeignKey('User', to_field="id", on_delete=models.CASCADE)
-    GoodsId = models.ForeignKey('GoodsInfo', to_field="id", on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
+    date = models.DateField(null=True, blank=True)
+    customerId = models.ForeignKey('User', to_field="id", on_delete=models.CASCADE)
+    goodsId = models.ForeignKey('GoodsInfo', to_field="id", on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=0)
     address = models.CharField(max_length=100, null=True)
-    receiver = models.CharField(max_length=20)
-    phoneNumber = models.CharField(max_length=20)
-    price = models.DecimalField(default=0.00, max_digits=10, decimal_places=2)
-    message = models.TextField(max_length=1000, null=True)
+    receiver = models.CharField(max_length=20, null=True)
+    phoneNumber = models.CharField(max_length=20, null=True)
+    totalPrice = models.DecimalField(default=0.00, max_digits=10, decimal_places=2)
+    remark = models.TextField(null=True)
+    paid = models.BooleanField(default=False)   # whether paid
+    removal = models.BooleanField(default=False)  # whether exist, -> cancel create, remove after finished
+    finished = models.BooleanField(default=False)  # whether finished -> delivery confirm
+    sign = models.CharField(max_length=20, null=True)  # used in creating order
+
+
 

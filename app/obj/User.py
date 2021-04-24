@@ -117,3 +117,19 @@ class User:
             return {"validation": self.validation}
         elif not self.testOutdated():
             return {"validation": self.validation, "mes": "login expired"}
+
+    def topUpMoney(self):
+        pass
+
+    def payMoney(self, amount, password):
+        if self.validation and self.testOutdated():
+            if self.info.password == password:
+                if self.info.balance >= amount:
+                    self.info.balance = float(self.info.balance) - amount
+                    self.info.save()
+                    return {"validation": True, "mes": "Successful payment"}
+                else:
+                    return {"validation": False, "mes": "Failed payment: No enough balance, please top up your account"}
+            else:
+                return {"validation": False, "mes": "Failed payment: Password wrong"}
+        return {"validation": False, "mes": "Failed payment: Unknown Error"}

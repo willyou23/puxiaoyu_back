@@ -6,6 +6,9 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import JsonResponse
 
+from app import models
+from app.obj.User import User
+
 
 def get_random_number_str(length):
     """
@@ -46,3 +49,29 @@ def processImg(pic, id):
 
 def JsonPackage(targetDict):
     return JsonResponse(json.dumps(targetDict), safe=False)
+
+
+def getUserId(cookie):
+    ans = User(cookie).getProfileInfo(whole=False)
+    if ans['validation']:
+        return {"validation": True, "uid": ans['id']}
+    else:
+        return {"validation": False, "mes": "invalid user"}
+
+
+def payMoney(cookie, amount, password):
+    ans = User(cookie).payMoney(amount=amount, password=password)
+    return ans
+
+
+def findOrders(viewId):
+    query1 = models.OrderInfo.objects.filter(customerId=viewId)
+    query2 = models.GoodsInfo.objects.filter(sellerId=viewId)
+    orderIdList = []
+    for i in query1:
+        orderIdList.append(i.id)
+    for i in query2:
+        query3 = models.OrderInfo.objects.filter(goodsId=i)
+        for j in query3:
+            orderIdList.append(j.id)
+    return orderIdList

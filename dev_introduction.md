@@ -85,6 +85,22 @@ pip install pillow
 
 安装mysql包
 
+安装djangorestframework
+
+```
+pip install djangorestframework
+```
+
+修改setting.py
+
+```
+INSTALLED_APPS = [
+······
+    'rest_framework',
+]
+
+```
+
 确保migrations内没有多余文件，除了\_\_init\_\_.py
 
 连接数据库
