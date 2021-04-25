@@ -90,7 +90,8 @@ class Order:
                     self.info.goodsId.sellerId.save()
                 print(ans)
                 return ans
-
+            else:
+                return {"validation": False, 'mes': "Order Error: total price doesn't match"}
         return {"validation": False, 'mes': "Order Error: not exist"}
 
         # change quantity, address, phoneNumber, receiver
@@ -129,63 +130,56 @@ class Order:
     def createOrder(self, goodsId, customerId, status, data):
         if status == "initial":
             try:
-                models.OrderInfo.objects.create(
-                    goodsId=models.GoodsInfo.objects.get(id=goodsId),
-                    customerId=models.User.objects.get(id=customerId),
-                    sign=customerId,
-                    date=datetime.now()
-                )
+                goods = models.GoodsInfo.objects.get(id=goodsId)
+                customer = models.User.objects.get(id=customerId)
+                return {"goodsName": goods.name,
+                        "goodsQuantity": goods.inventory,
+                        "goodsPrice": float(goods.price),
+                        "customer": customer.username,
+                        "phoneNumber": customer.phoneNumber,
+                        "address": customer.address,
+                        "validation": True}
+            except Exception as e:
+                print(e)
+            return {"validation": False, "mes": "get information failed"}
+        else:
+            try:
+                models.OrderInfo.objects.create(goodsId=models.GoodsInfo.objects.get(id=goodsId),
+                                                customerId=models.User.objects.get(id=customerId),
+                                                receiver=data['receiver'],
+                                                quantity=data['quantity'],
+                                                phoneNumber=data['phoneNumber'],
+                                                address=data['address'],
+                                                remark=data['remark'],
+                                                sign=customerId,
+                                                date=datetime.now()
+                                                )
                 query = models.OrderInfo.objects.get(sign=customerId)
                 self.orderId = query.id
+                query.totalPrice = data['quantity'] * float(query.goodsId.price)
                 query.sign = "-1"  # release current process lock
                 query.save()
                 self.testOrderId()
                 if self.validation:
                     return {"orderId": self.orderId,
                             "goodsName": self.info.goodsId.name,
-                            "goodsQuantity": self.info.goodsId.inventory,
+                            "quantity": self.info.quantity,
                             "goodsPrice": float(self.info.goodsId.price),
                             "customer": self.info.customerId.username,
-                            "phoneNumber": self.info.customerId.phoneNumber,
-                            "address": self.info.customerId.address,
+                            "phoneNumber": self.info.phoneNumber,
+                            "goodsQuantity": self.info.goodsId.inventory,
+                            "receiver": self.info.receiver,
+                            "address": self.info.address,
+                            "remark": self.info.remark,
+                            "mes": "successfully",
                             "validation": True}
+                else:
+                    return {"validation": False,
+                            "mes": "get date query failed"}
             except Exception as e:
                 print(e)
-            return {"validation": False, "mes": "create order failed"}
-        else:
-            if self.validation:
-                try:
-                    self.info.receiver = data['receiver']
-                    self.info.quantity = data['quantity']
-                    self.info.phoneNumber = data['phoneNumber']
-                    self.info.address = data['address']
-                    self.info.remark = data['remark']
-                    self.info.totalPrice = data['quantity'] * float(self.info.goodsId.price)
-                    self.info.save()
-                    self.testOrderId()
-                    print("hello",self.validation)
-                    if self.validation:
-                        return {"orderId": self.orderId,
-                                "goodsName": self.info.goodsId.name,
-                                "quantity": self.info.quantity,
-                                "goodsPrice": float(self.info.goodsId.price),
-                                "customer": self.info.customerId.username,
-                                "phoneNumber": self.info.phoneNumber,
-                                "goodsQuantity": self.info.goodsId.inventory,
-                                "receiver": self.info.receiver,
-                                "address": self.info.address,
-                                "remark": self.info.remark,
-                                "mes": "successfully",
-                                "validation": True}
-                    else:
-                        return {"validation": False,
-                                "mes": "get date query failed"}
-                except Exception as e:
-                    print(e)
-                return {"validation": False,
-                        "mes": "save data failed"}
             return {"validation": False,
-                    "mes": "order doesn't exist"}
+                    "mes": "save data failed"}
 
     def confirmOrder(self, quantity, remark, address, phoneNumber, receiver):
         try:

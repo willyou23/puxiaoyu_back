@@ -102,6 +102,7 @@ def confirmReceive(request):
 
 
 def payment(request):
+    print(request.POST)
     orderId = request.POST.get('orderId')
     money = float(request.POST.get("amount"))
     password = request.POST.get("password")
@@ -146,7 +147,6 @@ def deleteOrder(request):
 
 
 def createOrder(request):
-    orderId = request.POST.get('orderId')
     goodsId = request.POST.get('goodsId')
     cookie = request.POST.get('cookie')
     status = request.POST.get('status')
@@ -167,9 +167,42 @@ def createOrder(request):
         viewId = viewId["uid"]
     else:
         return staticFunc.JsonPackage(viewId)
-    ans = Order(orderId=orderId).createOrder(goodsId=goodsId, customerId=viewId, status=status, data=dataDict)
+    ans = Order().createOrder(goodsId=goodsId, customerId=viewId, status=status, data=dataDict)
     print(ans)
     return staticFunc.JsonPackage(ans)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # static func
