@@ -165,3 +165,8 @@ CORS_ALLOW_HEADERS = (
 #######################################
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/') # media即为图片上传的根路径
 MEDIA_URL = '/media/'
+
+################支付宝setting######################
+ALIPAY_PUBLIC = os.path.join(BASE_DIR, "puxiaoyu_backend/alipayApi/alipay_public_key.txt")
+APP_PUBLIC = os.path.join(BASE_DIR, "puxiaoyu_backend/alipayApi/my_public_key.txt")
+APP_PRIVATE = os.path.join(BASE_DIR, "puxiaoyu_backend/alipayApi/my_private_key.txt")

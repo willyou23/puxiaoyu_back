@@ -36,6 +36,7 @@ class Order:
             imgList = []
             if ans["validation"]:
                 imgList = ans["imgList"]
+            print(ans)
 
             ans = {"validation": True,
                    "date": str(self.info.date),

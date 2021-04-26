@@ -37,4 +37,5 @@ urlpatterns = [
     path('showGoodsInfo/', views.showGoodsInfo),
     path('updateGoodsInfo/', views.updateGoodsInfo),
     path('deleteGoodsInfo/', views.deleteGoodsInfo),
+    path('alipay/', include('payment.urls'))
 ]
