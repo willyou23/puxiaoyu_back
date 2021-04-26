@@ -85,6 +85,12 @@ pip install pillow
 
 安装mysql包
 
+安装
+
+```
+pip install pycryptodomex
+```
+
 安装djangorestframework
 
 ```
