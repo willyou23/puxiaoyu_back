@@ -112,7 +112,7 @@ def payment(request):
 
 def editOrder(request):
     orderId = request.POST.get('orderId')
-    quantity = request.POST.get('quantity')
+    quantity = int(request.POST.get('quantity'))
     remark = request.POST.get('remark')
     address = request.POST.get('address')
     phoneNumber = request.POST.get('receiverPhone')
@@ -290,18 +290,20 @@ def intialGoodsInfo(request):
 
 
 def updateGoodsInfo(request):
+    cookie = request.POST.get('')
     goodsId = request.POST.get('goodsId')
-    print(goodsId)
     name = request.POST.get('name')
-    print('name', name)
     price = request.POST.get('price')
     desc = request.POST.get('desc')
     inventory = request.POST.get('inventory')
-    # 改变商品的类型，从前端接收的是类型的名字
     category = request.POST.get('category')
-    # 找到类型对应的ID
     categoryId = models.GoodsCategory.objects.filter(name=category).get().id
-    return staticFunc.JsonPackage(Goods().updateInfo(name, price, desc, inventory,
+    viewId = staticFunc.getUserId(cookie)
+    if viewId['validation']:
+        viewId = viewId["uid"]
+    else:
+        return staticFunc.JsonPackage(viewId)
+    return staticFunc.JsonPackage(Goods().updateInfo(viewId, name, price, desc, inventory,
                                                      categoryId, goodsId))
 
     # Store the goods information
@@ -406,3 +408,12 @@ def index(request):
         price = models.GoodsInfo.objects.filter()
         Img = models.Img.objects.all().get().img
         return render(request, 'showImg.html', {'Img': Img, 'price': price})
+
+
+# homepage
+def testgetName_Price_Img(request):
+    return staticFunc.JsonPackage(Goods().getName_Price_Img())
+
+def getSortGoods(request):
+    category=request.POST.get('category')
+    return staticFunc.JsonPackage(Goods().getSortGoods(category))

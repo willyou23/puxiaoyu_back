@@ -165,17 +165,21 @@ class Goods:
             print(e)
         return {"validation": False}
 
-    def updateInfo(self, name, price, desc, inventory, categoryId, goodsId):
+    def updateInfo(self, viewId, name, price, desc, inventory, categoryId, goodsId):
         try:
-            models.GoodsInfo.objects.filter(id=goodsId).update(name=name)
-            models.GoodsInfo.objects.filter(id=goodsId).update(price=price)
-            models.GoodsInfo.objects.filter(id=goodsId).update(desc=desc)
-            models.GoodsInfo.objects.filter(id=goodsId).update(inventory=inventory)
-            models.GoodsInfo.objects.filter(id=goodsId).update(categoryID_id=categoryId)
-            return {'validation': True, 'update': True}
+            query = models.GoodsInfo.objects.get(id=goodsId)
+            if query.sellerId != viewId:
+                return {'validation': True, "mes": "invalid user"}
+            else:
+                query.name = name
+                query.price = price
+                query.desc = desc
+                query.inventory = inventory
+                query.categoryID = categoryId
+                return {'validation': True, "mes": "update successfully"}
         except Exception as e:
             print(e)
-        return {'validation': False}
+        return {'validation': False, "mes": "unknown error"}
 
     # 删除数据
     def deleteInfo(self, goodsId):
@@ -219,6 +223,118 @@ class Goods:
             if self.info.inventory >= int(quantity):
                 return {'validation': True, 'available': True}
             return {'validation': True, 'avaliable': False}
+        except Exception as e:
+            print(e)
+        return {'validation': False}
+
+    # 点击分类的名字获取该类型的goods
+    def getSortGoods(self, category):
+        # 根据名字获取类型的ID
+        try:
+            categoryId = models.GoodsCategory.objects.filter(name=category).get().id
+            goodsId = models.GoodsInfo.objects.filter(categoryID_id=categoryId).values('id')
+            # 获取商品名字
+            goodsName = []
+            # 商品价格
+            goodsPrice = []
+            # 商品图片
+            goodsImg = []
+            # 将query set转换成list
+            newGoodsId = list(goodsId)
+            newGoodsId1 = []
+            # 将收集好的信息按商品放到gatherInfo中
+            gatherInfo = []
+            # 通过goodsId筛选出name不为none的商品,并将筛选之后的商品添加到新的数列newGoodsId1和goodsName中
+            for i in range(0, len(newGoodsId)):
+                singlegoodsName = models.GoodsInfo.objects.filter(id=newGoodsId[i].get('id')).get().name
+                if singlegoodsName is not None:
+                    goodsName.append({'name': singlegoodsName})
+                    newGoodsId1.append(newGoodsId[i])
+            # 通过goodsId筛选出price,并将筛选之后的商品价格添加到goodsPrice中
+            for i in range(0, len(newGoodsId1)):
+                # print(newGoodsId1[i].get('id'))
+                # print(models.GoodsInfo.objects.filter(id=newGoodsId1[i].get('id')).get().id)
+                price = models.GoodsInfo.objects.filter(id=newGoodsId1[i].get('id')).get().price
+                # print(newGoodsId1[i], ' price=', price)
+                goodsPrice.append({"price": str(Decimal(price).quantize(Decimal('0.0')))})
+            # 通过goodsId找出商品对应的图片
+            for i in range(0, len(newGoodsId1)):
+                try:
+                    print(newGoodsId1[i].get('id'))
+                    # print(models.Img.objects.filter(goodsId_id=15).get().goodsId_id)
+                    img = models.Img.objects.filter(goodsId_id=newGoodsId1[i].get('id')).first().img
+                    print(img)
+                    goodsImg.append({'img': str(img)})
+                    # print('这一次她可以了')
+                except Exception as e:
+                    print(e)
+                    # i += 1
+                    print('i=', i)
+                    goodsImg.append({'img': 'None'})
+            # print(goodsImg)
+            # 将收集好的信息按商品放到gatherInfo中
+            for i in range(0, len(newGoodsId1)):
+                gatherInfo.append({'id': newGoodsId1[i].get('id'), 'name': goodsName[i].get('name'),
+                                   'price': goodsPrice[i].get('price'), 'img': goodsImg[i].get('img')})
+
+            print(gatherInfo)
+            return {'validation': True, 'goodsinfo': gatherInfo}
+        except Exception as e:
+            print(e)
+        return {'validation': False}
+
+    # homepage调用这个函数获取数据库中的name，price和img
+    def getName_Price_Img(self):
+        try:
+            # 商品ID
+            goodsId = models.GoodsInfo.objects.values('id')
+
+            # 获取商品名字
+            goodsName = []
+            # 商品价格
+            goodsPrice = []
+            # 商品图片
+            goodsImg = []
+            # 将query set转换成list
+            newGoodsId = list(goodsId)
+            newGoodsId1 = []
+            # 将收集好的信息按商品放到gatherInfo中
+            gatherInfo = []
+            # 通过goodsId筛选出name不为none的商品,并将筛选之后的商品添加到新的数列newGoodsId1和goodsName中
+            for i in range(0, len(newGoodsId)):
+                singlegoodsName = models.GoodsInfo.objects.filter(id=newGoodsId[i].get('id')).get().name
+                if singlegoodsName is not None:
+                    goodsName.append({'name': singlegoodsName})
+                    newGoodsId1.append(newGoodsId[i])
+            # 通过goodsId筛选出price,并将筛选之后的商品价格添加到goodsPrice中
+            for i in range(0, len(newGoodsId1)):
+                # print(newGoodsId1[i].get('id'))
+                # print(models.GoodsInfo.objects.filter(id=newGoodsId1[i].get('id')).get().id)
+                price = models.GoodsInfo.objects.filter(id=newGoodsId1[i].get('id')).get().price
+                # print(newGoodsId1[i], ' price=', price)
+                goodsPrice.append({"price": str(Decimal(price).quantize(Decimal('0.0')))})
+            # 通过goodsId找出商品对应的图片
+            for i in range(0, len(newGoodsId1)):
+                try:
+                    print(newGoodsId1[i].get('id'))
+                    # print(models.Img.objects.filter(goodsId_id=15).get().goodsId_id)
+                    img = models.Img.objects.filter(goodsId_id=newGoodsId1[i].get('id')).first().img
+                    print(img)
+                    goodsImg.append({'img': str(img)})
+                    # print('这一次她可以了')
+                except Exception as e:
+                    print(e)
+                    # i += 1
+                    print('i=', i)
+                    goodsImg.append({'img': 'None'})
+            # print(goodsImg)
+            # 将收集好的信息按商品放到gatherInfo中
+            for i in range(0, len(newGoodsId1)):
+                gatherInfo.append({'id': newGoodsId1[i].get('id'), 'name': goodsName[i].get('name'),
+                                   'price': goodsPrice[i].get('price'), 'img': goodsImg[i].get('img')})
+
+            print(gatherInfo)
+            return {'validation': True, 'goodsinfo': gatherInfo}
         except Exception as e:
             print(e)
         return {'validation': False}

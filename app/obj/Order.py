@@ -82,13 +82,17 @@ class Order:
 
     def transaction(self, cookie, amount, password):
         if self.validation:
+            if self.info.quantity > self.info.goodsId.inventory:
+                return {"validation": False, 'mes': "insufficient goods inventory"}
             if amount == float(self.info.totalPrice):
                 ans = staticFunc.payMoney(cookie=cookie, amount=amount, password=password)
                 if ans['validation']:
                     self.info.goodsId.sellerId.balance = float(self.info.goodsId.sellerId.balance) + amount
+                    self.info.goodsId.sellerId.save()
                     self.info.paid = True
                     self.info.save()
-                    self.info.goodsId.sellerId.save()
+                    self.info.goodsId.inventory = self.info.goodsId.inventory - self.info.quantity
+                    self.info.goodsId.save()
                 print(ans)
                 return ans
             else:
@@ -99,6 +103,8 @@ class Order:
 
     def editOrder(self, viewId, quantity, address, receiverPhone, receiver, remark, totalPrice):
         if self.isCustomer(viewId):
+            if self.info.goodsId.inventory < quantity:
+                return {"validation": False, "mes": "Error: insufficient goods inventory"}
             self.info.quantity = quantity
             self.info.address = address
             self.info.phoneNumber = receiverPhone
@@ -145,6 +151,8 @@ class Order:
             return {"validation": False, "mes": "get information failed"}
         else:
             try:
+                if models.GoodsInfo.objects.get(id=goodsId).inventory < data['quantity']:
+                    return {"validation": False, "mes": "Error: insufficient goods inventory"}
                 models.OrderInfo.objects.create(goodsId=models.GoodsInfo.objects.get(id=goodsId),
                                                 customerId=models.User.objects.get(id=customerId),
                                                 receiver=data['receiver'],

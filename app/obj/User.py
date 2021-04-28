@@ -84,12 +84,15 @@ class User:
     def getProfileInfo(self, whole=True):
         if self.validation and self.testOutdated():
             if whole:
+                goodsList, orderList = staticFunc.findInfo(self.info.id)
                 return {'username': self.info.username,
                         "phoneNumber": self.info.phoneNumber,
                         "email": self.info.email,
                         'id': self.info.id,
                         "address": self.info.address,
                         "balance": float(self.info.balance),
+                        "goodsList": goodsList,
+                        "orderList": orderList,
                         "validation": self.validation}
             else:
                 return {'username': self.info.username,
