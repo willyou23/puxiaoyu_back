@@ -172,39 +172,6 @@ def createOrder(request):
     return staticFunc.JsonPackage(ans)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # static func
 def writeFile(filePath, file, goodsId):
     # 根据goods_Id创建文件夹
@@ -268,6 +235,7 @@ def uploadGoods(request):
 # save the image added to good
 
 def showGoodsInfo(request):
+    print("zhaohaodong", request.POST)
     # print('showGoodsInfo1')
     goodsId = request.POST.get('goodsId')
     # print('goodsId=', goodsId)
@@ -290,7 +258,7 @@ def intialGoodsInfo(request):
 
 
 def updateGoodsInfo(request):
-    cookie = request.POST.get('')
+    cookie = request.POST.get('cookie')
     goodsId = request.POST.get('goodsId')
     name = request.POST.get('name')
     price = request.POST.get('price')
@@ -332,9 +300,14 @@ def deliverGoodsInfo(request):
 
 def deleteGoodsInfo(request):
     goodsId = request.POST.get('goodsId')
-    return staticFunc.JsonPackage(Goods().deleteInfo(goodsId))
-
-    # 这是测试函数
+    cookie = request.POST.get('cookie')
+    delete = request.POST.get('delete')
+    viewId = staticFunc.getUserId(cookie)
+    if viewId['validation']:
+        viewId = viewId["uid"]
+    else:
+        return staticFunc.JsonPackage(viewId)
+    return staticFunc.JsonPackage(Goods().deleteInfo(goodsId, viewId, delete))
 
 
 def testGetCategory(request):
@@ -413,6 +386,7 @@ def index(request):
 # homepage
 def testgetName_Price_Img(request):
     return staticFunc.JsonPackage(Goods().getName_Price_Img())
+
 
 def getSortGoods(request):
     category=request.POST.get('category')

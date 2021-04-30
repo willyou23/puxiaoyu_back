@@ -64,18 +64,6 @@ def payMoney(cookie, amount, password):
     return ans
 
 
-# def findOrders(viewId):
-#     query1 = models.OrderInfo.objects.filter(customerId=viewId)
-#     query2 = models.GoodsInfo.objects.filter(sellerId=viewId)
-#     orderIdList = []
-#     for i in query1:
-#         orderIdList.append(i.id)
-#     for i in query2:
-#         query3 = models.OrderInfo.objects.filter(goodsId=i)
-#         for j in query3:
-#             orderIdList.append(j.id)
-#     return orderIdList
-
 def findInfo(viewId):
     query1 = models.OrderInfo.objects.filter(customerId=viewId)
     query2 = models.GoodsInfo.objects.filter(sellerId=viewId)
@@ -96,13 +84,14 @@ def findInfo(viewId):
         orderList.append(data)
     for i in query2:
         query3 = models.OrderInfo.objects.filter(goodsId=i.id)
-        show = ""
         if i.show:
-            show = "show"
-        else:
-            show = "not show"
-        goodsList.append(
-            {"id": i.id, "name": i.name, "category": i.categoryID.name, "status": show})
+            show = ""
+            if i.show:
+                show = "show"
+            else:
+                show = "not show"
+            goodsList.append(
+                {"id": i.id, "name": i.name, "category": i.categoryID.name, "status": show})
         for j in query3:
             if j.removal:
                 continue

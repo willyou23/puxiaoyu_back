@@ -150,6 +150,7 @@ class Goods:
         return {"validation": False}
 
     def storeGoods(self, name, price, desc, inventory, show, cookie, goodsId):
+        print("zhaohaodong",cookie)
         self.__init1__(goodsId)
         # 加验证
         try:
@@ -166,29 +167,46 @@ class Goods:
         return {"validation": False}
 
     def updateInfo(self, viewId, name, price, desc, inventory, categoryId, goodsId):
+        print("hi")
         try:
             query = models.GoodsInfo.objects.get(id=goodsId)
-            if query.sellerId != viewId:
-                return {'validation': True, "mes": "invalid user"}
+            if query.sellerId.id != viewId:
+                return {'validation': False, "mes": "invalid user"}
             else:
                 query.name = name
                 query.price = price
                 query.desc = desc
                 query.inventory = inventory
-                query.categoryID = categoryId
-                return {'validation': True, "mes": "update successfully"}
+                query.categoryID = models.GoodsCategory.objects.get(id=categoryId)
+                query.save()
+                newQuery = models.GoodsInfo.objects.get(id=goodsId)
+                imgList = self.getImg(goodsId=goodsId)["imgList"]
+                return {'validation': True,
+                        "name": newQuery.name,
+                        "price": str(Decimal(newQuery.price).quantize(Decimal('0.0'))),
+                        "desc": newQuery.desc,
+                        "inventory": newQuery.inventory,
+                        "category": newQuery.categoryID.name,
+                        "seller": newQuery.sellerId.username,
+                        "imgList": imgList,
+                        "mes": "update successfully"}
         except Exception as e:
             print(e)
         return {'validation': False, "mes": "unknown error"}
 
     # 删除数据
-    def deleteInfo(self, goodsId):
+    def deleteInfo(self, goodsId, viewId, delete):
         try:
-            models.GoodsInfo.objects.filter(id=goodsId).delete()
-            return {'validation': True}
+            query = models.GoodsInfo.objects.get(id=goodsId)
+            if query.sellerId.id != viewId:
+                return {'validation': False, "mes": "invalid user"}
+            elif delete:
+                query.show = False
+                query.save()
+                return {'validation': True, "mes": "delete successfully"}
         except Exception as e:
             print(e)
-        return {'validation': False}
+        return {'validation': False, "mes": "unknown error"}
 
     # order页面需要的功能
 
@@ -227,10 +245,11 @@ class Goods:
             print(e)
         return {'validation': False}
 
-    # 点击分类的名字获取该类型的goods
+        # 点击分类的名字获取该类型的goods
     def getSortGoods(self, category):
         # 根据名字获取类型的ID
         try:
+            print('需要获取的是', category, '的商品.')
             categoryId = models.GoodsCategory.objects.filter(name=category).get().id
             goodsId = models.GoodsInfo.objects.filter(categoryID_id=categoryId).values('id')
             # 获取商品名字
@@ -246,6 +265,8 @@ class Goods:
             gatherInfo = []
             # 通过goodsId筛选出name不为none的商品,并将筛选之后的商品添加到新的数列newGoodsId1和goodsName中
             for i in range(0, len(newGoodsId)):
+                if not models.GoodsInfo.objects.get(id=newGoodsId[i].get('id')).show:
+                    continue
                 singlegoodsName = models.GoodsInfo.objects.filter(id=newGoodsId[i].get('id')).get().name
                 if singlegoodsName is not None:
                     goodsName.append({'name': singlegoodsName})
@@ -302,6 +323,8 @@ class Goods:
             gatherInfo = []
             # 通过goodsId筛选出name不为none的商品,并将筛选之后的商品添加到新的数列newGoodsId1和goodsName中
             for i in range(0, len(newGoodsId)):
+                if not models.GoodsInfo.objects.get(id=newGoodsId[i].get('id')).show:
+                    continue
                 singlegoodsName = models.GoodsInfo.objects.filter(id=newGoodsId[i].get('id')).get().name
                 if singlegoodsName is not None:
                     goodsName.append({'name': singlegoodsName})

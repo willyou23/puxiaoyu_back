@@ -74,7 +74,7 @@ class PayOrder(models.Model):
     subject = models.CharField(max_length=150)
     total_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0)
     out_trade_no = models.CharField(max_length=64, verbose_name="订单号", unique=True)
-    # trade_no = models.CharField(max_length=64, null=True, verbose_name="流水号")
+    trade_no = models.CharField(max_length=64, null=True, verbose_name="流水号")
     order_status = models.SmallIntegerField(choices=status_choices, default=0)
     pay_time = models.DateTimeField(null=True)
     user_id = models.ForeignKey('User', to_field="id", on_delete=models.CASCADE)
