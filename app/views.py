@@ -389,5 +389,11 @@ def testgetName_Price_Img(request):
 
 
 def getSortGoods(request):
-    category=request.POST.get('category')
+    category = request.POST.get('category')
     return staticFunc.JsonPackage(Goods().getSortGoods(category))
+
+
+def searchGoods(request):
+    name=request.POST.get('name')
+    print(name)
+    return staticFunc.JsonPackage(Goods().search(name))

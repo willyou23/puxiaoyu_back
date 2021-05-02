@@ -361,3 +361,45 @@ class Goods:
         except Exception as e:
             print(e)
         return {'validation': False}
+
+    def search(self, name):
+        try:
+            print(name)
+            manyGoods = models.GoodsInfo.objects.filter(name__icontains=name)
+            # manyGoods = models.GoodsInfo.objects.filter(name__iregex="^" + name)
+            recordedGoodsId = []
+            recordedGoodsName = []
+            recordedGoodsPrice = []
+            recordedGoodsImg = []
+            gatherInfo = []
+            print(manyGoods)
+
+            for goods in manyGoods:
+                # if (str(name) in goods.name) :
+                if goods.show == 1:
+                    recordedGoodsId.append({'id': goods.id})
+                    recordedGoodsName.append({'name': goods.name})
+                    recordedGoodsPrice.append({"price": str(Decimal(goods.price).quantize(Decimal('0.0')))})
+                    # recordedGoodsImg.append({'img': goods})
+
+            for i in range(0, len(recordedGoodsId)):
+                try:
+                    # print(newGoodsId1[i].get('id'))
+                    # print(models.Img.objects.filter(goodsId_id=15).get().goodsId_id)
+                    img = models.Img.objects.filter(goodsId_id=recordedGoodsId[i].get('id')).first().img
+                    # print(img)
+                    recordedGoodsImg.append({'img': str(img)})
+                    # print('这一次她可以了')
+                except Exception as e:
+                    print(e)
+                    # i += 1
+                    print('i=', i)
+                    recordedGoodsImg.append({'img': 'None'})
+            for i in range(0, len(recordedGoodsId)):
+                gatherInfo.append({'id': recordedGoodsId[i].get('id'), 'name': recordedGoodsName[i].get('name'),
+                                   'price': recordedGoodsPrice[i].get('price'), 'img': recordedGoodsImg[i].get('img')})
+                # print(goods.name)
+            return {'validation': True, 'goodsinfo': gatherInfo}
+        except Exception as e:
+            print(e)
+        return {'validation': False}

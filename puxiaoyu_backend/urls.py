@@ -40,4 +40,5 @@ urlpatterns = [
     path('alipay/', include('payment.urls')),
     path('getName_Price_Img/', views.testgetName_Price_Img),
     path('getSortGoods/', views.getSortGoods),
+    path('search/', views.searchGoods),
 ]
