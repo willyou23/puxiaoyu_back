@@ -27,6 +27,7 @@ urlpatterns = [
     path('resetPassword/', views.resetPassword),
     path('order/showOrder/', views.showOrder),
     path('order/confirmReceive/', views.confirmReceive),
+    path('order/confirmSend/', views.confirmSend),
     path('order/payment/', views.payment),
     path('order/editOrder/', views.editOrder),
     path('order/deleteOrder/', views.deleteOrder),
@@ -41,4 +42,6 @@ urlpatterns = [
     path('getName_Price_Img/', views.testgetName_Price_Img),
     path('getSortGoods/', views.getSortGoods),
     path('search/', views.searchGoods),
+    path('validateId/', views.validateId),
+    path('forgetPassword/', views.forgetPassword),
 ]

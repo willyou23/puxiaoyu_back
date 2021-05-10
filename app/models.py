@@ -15,6 +15,18 @@ class User(models.Model):
     address = models.CharField(max_length=100, null=True)
 
 
+class SecurityQuestion(models.Model):
+    question_choices = (
+        (1, 'When is your birthday?'),
+        (2, 'Which city were you born in?'),
+        (3, 'what is your first phone number?'),
+    )
+    question = models.SmallIntegerField(choices=question_choices, default=1)
+    # question = models.CharField(max_length=100, null=True)
+    answer = models.CharField(max_length=100, null=True)
+    user_id = models.ForeignKey('User', to_field="id", on_delete=models.CASCADE)
+
+
 class GoodsCategory(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30)
@@ -56,9 +68,10 @@ class OrderInfo(models.Model):
     phoneNumber = models.CharField(max_length=20, null=True)
     totalPrice = models.DecimalField(default=0.00, max_digits=10, decimal_places=2)
     remark = models.TextField(null=True)
-    paid = models.BooleanField(default=False)   # whether paid
+    paid = models.BooleanField(default=False)  # whether paid
     removal = models.BooleanField(default=False)  # whether exist, -> cancel create, remove after finished
     finished = models.BooleanField(default=False)  # whether finished -> delivery confirm
+    send = models.BooleanField(default=False)
     sign = models.CharField(max_length=20, null=True)  # used in creating order
 
 
@@ -72,10 +85,9 @@ class PayOrder(models.Model):
     )
 
     subject = models.CharField(max_length=150)
-    total_amount = models.DecimalField(max_digits=10,decimal_places=2,default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     out_trade_no = models.CharField(max_length=64, verbose_name="订单号", unique=True)
     trade_no = models.CharField(max_length=64, null=True, verbose_name="流水号")
     order_status = models.SmallIntegerField(choices=status_choices, default=0)
     pay_time = models.DateTimeField(null=True)
     user_id = models.ForeignKey('User', to_field="id", on_delete=models.CASCADE)
-

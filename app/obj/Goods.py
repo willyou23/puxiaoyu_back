@@ -19,7 +19,6 @@ class Goods:
         # self.seller = ""
         # self.user = None
         self.testExist()
-        print('__init1__之后的', self.validation)
 
     def __init__(self):
         self.goodsId = None
@@ -111,12 +110,10 @@ class Goods:
             try:
                 # print('what happened???1')
                 self.getIMG(goodsId)
-                print(self.imgList)
                 # print('what happened???2')
                 self.getCategory(goodsId)
                 # print('what happened???3')
                 self.getSeller(goodsId)
-                print(self.category)
                 return {"validation": True, "name": self.info.name,
                         "price": str(Decimal(self.info.price).quantize(Decimal('0.0'))), "desc": self.info.desc,
                         "inventory": self.info.inventory, "category": self.category,
@@ -150,7 +147,6 @@ class Goods:
         return {"validation": False}
 
     def storeGoods(self, name, price, desc, inventory, show, cookie, goodsId):
-        print("zhaohaodong",cookie)
         self.__init1__(goodsId)
         # 加验证
         try:
@@ -167,7 +163,6 @@ class Goods:
         return {"validation": False}
 
     def updateInfo(self, viewId, name, price, desc, inventory, categoryId, goodsId):
-        print("hi")
         try:
             query = models.GoodsInfo.objects.get(id=goodsId)
             if query.sellerId.id != viewId:
@@ -281,24 +276,19 @@ class Goods:
             # 通过goodsId找出商品对应的图片
             for i in range(0, len(newGoodsId1)):
                 try:
-                    print(newGoodsId1[i].get('id'))
                     # print(models.Img.objects.filter(goodsId_id=15).get().goodsId_id)
                     img = models.Img.objects.filter(goodsId_id=newGoodsId1[i].get('id')).first().img
-                    print(img)
                     goodsImg.append({'img': str(img)})
                     # print('这一次她可以了')
                 except Exception as e:
                     print(e)
                     # i += 1
-                    print('i=', i)
                     goodsImg.append({'img': 'None'})
             # print(goodsImg)
             # 将收集好的信息按商品放到gatherInfo中
             for i in range(0, len(newGoodsId1)):
                 gatherInfo.append({'id': newGoodsId1[i].get('id'), 'name': goodsName[i].get('name'),
                                    'price': goodsPrice[i].get('price'), 'img': goodsImg[i].get('img')})
-
-            print(gatherInfo)
             return {'validation': True, 'goodsinfo': gatherInfo}
         except Exception as e:
             print(e)
@@ -339,24 +329,19 @@ class Goods:
             # 通过goodsId找出商品对应的图片
             for i in range(0, len(newGoodsId1)):
                 try:
-                    print(newGoodsId1[i].get('id'))
                     # print(models.Img.objects.filter(goodsId_id=15).get().goodsId_id)
                     img = models.Img.objects.filter(goodsId_id=newGoodsId1[i].get('id')).first().img
-                    print(img)
                     goodsImg.append({'img': str(img)})
                     # print('这一次她可以了')
                 except Exception as e:
                     print(e)
                     # i += 1
-                    print('i=', i)
                     goodsImg.append({'img': 'None'})
             # print(goodsImg)
             # 将收集好的信息按商品放到gatherInfo中
             for i in range(0, len(newGoodsId1)):
                 gatherInfo.append({'id': newGoodsId1[i].get('id'), 'name': goodsName[i].get('name'),
                                    'price': goodsPrice[i].get('price'), 'img': goodsImg[i].get('img')})
-
-            print(gatherInfo)
             return {'validation': True, 'goodsinfo': gatherInfo}
         except Exception as e:
             print(e)
@@ -364,15 +349,33 @@ class Goods:
 
     def search(self, name):
         try:
-            print(name)
-            manyGoods = models.GoodsInfo.objects.filter(name__icontains=name)
+            gatherInfo = []
+            try:
+                manyGoods = models.GoodsInfo.objects.filter(name__icontains=name)
+            except Exception as e:
+                manyGoods = models.GoodsInfo.objects.none()
+
+            try:
+                newManyGoods = models.GoodsInfo.objects.none()
+
+                UserId = models.User.objects.filter(username__icontains=name)
+
+                for Id in UserId:
+                    newManyGoods = models.GoodsInfo.objects.filter(sellerId=Id.id)
+                    manyGoods = manyGoods | newManyGoods
+
+            except Exception as e:
+
+                newManyGoods = models.GoodsInfo.objects.none()
+            manyGoods = manyGoods | newManyGoods
+            if manyGoods.count() == 0:
+                return {'validation': False, 'goodsinfo': gatherInfo}
+
             # manyGoods = models.GoodsInfo.objects.filter(name__iregex="^" + name)
             recordedGoodsId = []
             recordedGoodsName = []
             recordedGoodsPrice = []
             recordedGoodsImg = []
-            gatherInfo = []
-            print(manyGoods)
 
             for goods in manyGoods:
                 # if (str(name) in goods.name) :
@@ -391,9 +394,6 @@ class Goods:
                     recordedGoodsImg.append({'img': str(img)})
                     # print('这一次她可以了')
                 except Exception as e:
-                    print(e)
-                    # i += 1
-                    print('i=', i)
                     recordedGoodsImg.append({'img': 'None'})
             for i in range(0, len(recordedGoodsId)):
                 gatherInfo.append({'id': recordedGoodsId[i].get('id'), 'name': recordedGoodsName[i].get('name'),

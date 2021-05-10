@@ -29,8 +29,6 @@ class Order:
             return True
 
     def showOrder(self, viewId):
-        # print(viewId, self.sellerId, self.customerId)
-        # print(self.isSeller(viewId), self.isCustomer(viewId))
         if (self.isSeller(viewId) or self.isCustomer(viewId)) and self.validation:
             ans = Goods().getImg(self.goodsId)
             imgList = []
@@ -40,6 +38,7 @@ class Order:
 
             ans = {"validation": True,
                    "date": str(self.info.date),
+                   "goodsQuantity": self.info.goodsId.inventory,
                    "quantity": self.info.quantity,
                    "address": self.info.address,
                    "price": float(self.info.goodsId.price),
@@ -53,6 +52,7 @@ class Order:
                    "img": imgList,
                    "paid": self.info.paid,
                    "finished": self.info.finished,
+                   "send": self.info.send,
 
                    "receiver": self.info.receiver,
                    "phoneNumber": self.info.phoneNumber,
@@ -70,14 +70,27 @@ class Order:
     def confirmReceive(self, viewId):
         if self.isCustomer(viewId):
             if not self.info.finished:
-                if self.info.paid:
+                if self.info.send:
                     self.info.finished = True
                     self.info.save()
-                    return {"validation": True, "mes": "Complete successfully"}
+                    return {"validation": True, "mes": "Receive successfully"}
+                else:
+                    return {"validation": False, "mes": "Goods has not been sent"}
+            else:
+                return {"validation": False, "mes": "can't be confirmed repeatedly"}
+        return {"validation": False, "mes": "invalid user"}
+
+    def confirmSend(self, viewId):
+        if self.isSeller(viewId):
+            if not self.info.finished:
+                if self.info.paid:
+                    self.info.send = True
+                    self.info.save()
+                    return {"validation": True, "mes": "Send successfully"}
                 else:
                     return {"validation": False, "mes": "Order has not been paid"}
             else:
-                return {"validation": False, "mes": "can't be confirmed repeatedly"}
+                return {"validation": False, "mes": "can't be sent repeatedly"}
         return {"validation": False, "mes": "invalid user"}
 
     def transaction(self, cookie, amount, password):
@@ -103,7 +116,7 @@ class Order:
 
     def editOrder(self, viewId, quantity, address, receiverPhone, receiver, remark, totalPrice):
         if self.isCustomer(viewId):
-            if self.info.goodsId.inventory < quantity:
+            if self.info.goodsId.inventory < quantity and not self.info.paid:
                 return {"validation": False, "mes": "Error: insufficient goods inventory"}
             self.info.quantity = quantity
             self.info.address = address
@@ -112,11 +125,27 @@ class Order:
             self.info.remark = remark
             self.info.totalPrice = totalPrice
             self.info.save()
-            return {"validation": True, "mes": "Update successfully"}
+            self.testOrderId()
+            return {"validation": True, "mes": "Update successfully",
+                    "quantity": self.info.quantity,
+                    "address": self.info.address,
+                    "totalPrice": float(self.info.totalPrice),
+                    "remark": self.info.remark,
+                    "receiver": self.info.receiver,
+                    "phoneNumber": self.info.phoneNumber,
+                    }
         elif self.isSeller(viewId):
             self.info.totalPrice = totalPrice
             self.info.save()
-            return {"validation": True, "mes": "Update successfully"}
+            self.testOrderId()
+            return {"validation": True, "mes": "Update successfully",
+                    "quantity": self.info.quantity,
+                    "address": self.info.address,
+                    "totalPrice": float(self.info.totalPrice),
+                    "remark": self.info.remark,
+                    "receiver": self.info.receiver,
+                    "phoneNumber": self.info.phoneNumber,
+                    }
         else:
             return {"validation": False, "mes": "Update error"}
 

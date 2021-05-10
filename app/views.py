@@ -31,7 +31,22 @@ def createAccount(request):
     username = request.POST.get('username')
     email = request.POST.get('email')
     password = request.POST.get('password')
-    return staticFunc.JsonPackage(User().createAccount(username, email, password))
+    question = request.POST.get('value')
+    print(type(question))
+    print(question)
+    answer = request.POST.get('answer')
+    print(answer)
+    return staticFunc.JsonPackage(User().createAccount(username, email, password, question, answer))
+
+
+def forgetPassword(request):
+    question = request.POST.get('value')
+    print(question)
+    answer = request.POST.get('answer')
+    print(answer)
+    newpassword = request.POST.get('password')
+    username = request.POST.get('username')
+    return staticFunc.JsonPackage(User().forgetPassword(username, newpassword, question, answer))
 
 
 # use cookie to get user information  and form the profile
@@ -60,6 +75,24 @@ def updateProfileInfo(request):
                                                                         phoneNumber=phoneNumber,
                                                                         email=email,
                                                                         address=address))
+
+
+def validateId(request):
+    cookie = request.POST.get('cookie')
+    goodsId = request.POST.get('goodsId')
+    viewId = staticFunc.getUserId(cookie)
+    if viewId['validation']:
+        viewId = viewId["uid"]
+    else:
+        return staticFunc.JsonPackage(viewId)
+
+    try:
+        goods = models.GoodsInfo.objects.get(id=goodsId)
+        if goods.sellerId.id == viewId:
+            return staticFunc.JsonPackage({"validation": False})
+    except Exception as e:
+        print(e)
+    return staticFunc.JsonPackage({"validation": True})
 
 
 # order views
@@ -99,6 +132,17 @@ def confirmReceive(request):
     else:
         return staticFunc.JsonPackage(viewId)
     return staticFunc.JsonPackage(Order(orderId=orderId).confirmReceive(viewId=viewId))
+
+
+def confirmSend(request):
+    orderId = request.POST.get('orderId')
+    cookie = request.POST.get('cookie')
+    viewId = staticFunc.getUserId(cookie)
+    if viewId['validation']:
+        viewId = viewId["uid"]
+    else:
+        return staticFunc.JsonPackage(viewId)
+    return staticFunc.JsonPackage(Order(orderId=orderId).confirmSend(viewId=viewId))
 
 
 def payment(request):
@@ -394,6 +438,6 @@ def getSortGoods(request):
 
 
 def searchGoods(request):
-    name=request.POST.get('name')
+    name = request.POST.get('name')
     print(name)
     return staticFunc.JsonPackage(Goods().search(name))
