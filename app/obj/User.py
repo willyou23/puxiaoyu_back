@@ -162,19 +162,42 @@ class User:
         elif not self.testOutdated():
             return {"validation": self.validation, "mes": "login expired"}
 
-    def updateProfileInfo(self, username, phoneNumber, email, address):
+    # def updateProfileInfo(self, username, phoneNumber, email, address):
+    def updateProfileInfo(self, username, phoneNumber, email, address, securityProblem, securityAnswer):
+        print('已拿到所有值')
+        if len(securityProblem) == 0:
+            return {"validation": False, "errmess": "please choose question"}
+
+        if len(securityAnswer) == 0:
+            return {"validation": False, "errmess": "please return answer"}
+
         if self.validation and self.testOutdated():
             self.info.username = username
             self.info.phoneNumber = phoneNumber
             self.info.email = email
             self.info.address = address
             self.info.save()
+            # security problem & answer updation
+            print('用户的id' + str(self.info.id))
+            security = models.SecurityQuestion.objects.get(user_id=self.info.id)
+            security.question = int(securityProblem)
+            security.answer = securityAnswer
+            security.save()
             return {'username': self.info.username,
                     "phoneNumber": self.info.phoneNumber,
                     "email": self.info.email,
                     "address": self.info.address,
                     "balance": float(self.info.balance),
+                    "securityProblem": security.question,
+                    "securityAnswer": security.answer,
                     "validation": self.validation}
+            #
+            # return {'username': self.info.username,
+            #         "phoneNumber": self.info.phoneNumber,
+            #         "email": self.info.email,
+            #         "address": self.info.address,
+            #         "balance": float(self.info.balance),
+            #         "validation": self.validation}
         elif not self.validation:
             return {"validation": self.validation}
         elif not self.testOutdated():

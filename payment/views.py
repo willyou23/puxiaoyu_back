@@ -1,7 +1,7 @@
 import datetime
 import decimal
 import uuid
-from urllib.parse import parse_qs
+
 
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
@@ -57,9 +57,11 @@ class AlipayPageTrade(View):
 
         # 初始化需要的数据
         money = request.POST.get("paymentMoney")
-        print(type(money))  # 金额，前端获取
+        print(type(money))# 金额，前端获取
         # print(money)
         out_trade_no = uuid.uuid4().hex  # 订单号，后台生成，需不重复
+        # out_trade_no = 123139132  # 订单号，后台生成，需不重复
+
         subject = userinfo.username + "deposit"  # 商品名称
 
         # 拼接url
@@ -68,11 +70,12 @@ class AlipayPageTrade(View):
             out_trade_no=out_trade_no,
             total_amount=money,
 
+
         )
 
         # 更新数据库2
         user = User.objects.get(cookie=user_cookie)
-        user.out_trade_no = out_trade_no
+        user.out_trade_no=out_trade_no
 
         user.save()
         userid = User.objects.get(id=user.id)
@@ -107,42 +110,42 @@ class AlipayPageTrade(View):
 
         return JsonResponse({"message": 3, "pay_url": pay_url})
 
-
 class AlipayRedirect(View):
     # 支付宝同步回调给前台，在同步通知给后台处理
 
     def get(self, request):
         # return Response('后台已知晓，Over！！！')
         print('后台已知晓，Over！！！')
-        data = request.GET
+        data=request.GET
         print(data)
-        result_data = data.dict()
-        # cookie=result_data['cookie']
-        # print(result_data)
-        # result_datanew=result_data.pop('cookie')
-        # print(result_datanew)
+        result_data=data.dict()
         alipay = aliPay(AliPayPageTrade)
         signature = result_data.pop('sign')
-        result = alipay.verify(result_data, signature)
+        result = alipay.verify(result_data,signature)
         if result:
-            print("进行更新数据库")
+            print("获取数据")
             out_trade_no = result_data.get('out_trade_no', '')
-            total_amount = result_data.get('total_amount', '')
+            total_amount = result_data.get('total_amount','')
             pay_time = result_data.get('timestamp')
             print(pay_time)
-            # date_date = datetime.date(*map(int, pay_time.split('_')))
-
-            # paytime = time.strftime("%Y-%m-%d %H:%M:%S", date_date)
-            # paytime=time.strptime(pay_time, "%Y/%m/%d %H:%M:%S")
-            paytime = datetime.datetime.strptime(pay_time, "%Y-%m-%d %H:%M:%S")
-
-            trade_no = result_data.get('trade_no')
-            payorder = PayOrder.objects.get(out_trade_no=out_trade_no)
+            paytime=datetime.datetime.strptime(pay_time, "%Y-%m-%d %H:%M:%S")
+            trade_no=result_data.get('trade_no')
+            payorder=PayOrder.objects.get(out_trade_no=out_trade_no)
+            if payorder.order_status == 1:
+                print("此订单已经支付，返回数据")
+                # out_trade_no = result_data.get('out_trade_no', '')
+                payorder = PayOrder.objects.get(out_trade_no=out_trade_no)
+                userid = payorder.user_id_id
+                cookie = User.objects.get(id=userid).cookie
+                return JsonResponse({"num":'3',"succmess":"Payment is Successful, Please Return to the Profile","cookie":cookie,
+                                     "result": result_data})
+            print("进行更新数据库")
             payorder.order_status = 1  # 支付成功
-            orderstatus = "Finished"
+            orderstatus="Finished"
             payorder.total_amount = total_amount
             payorder.pay_time = paytime
             payorder.trade_no = trade_no
+
 
             payorder.save()
             # 更新用户账户
@@ -155,16 +158,19 @@ class AlipayRedirect(View):
             # print(type(user1.balance))
 
             total_amountnew = decimal.Decimal(total_amount)
-            user1.balance += total_amountnew
+            user1.balance +=total_amountnew
+
 
             user1.save()
 
-            return JsonResponse({"num": '1', "errmesage": "Payment is Successful, Please Return to the Profile",
-                                 "result": result_data,
-                                 "orderstatus": orderstatus,
-                                 "cookie": cookie})
+            return JsonResponse({"num":'1',"succmess":"Payment is Successful, Please Return to the Profile",
+                                     "result":result_data,
+                                     "orderstatus":orderstatus,
+                                     "cookie":cookie})
+
         out_trade_no = result_data.get('out_trade_no', '')
         payorder = PayOrder.objects.get(out_trade_no=out_trade_no)
-        userid = payorder.user_id_id
+        userid= payorder.user_id_id
         cookie = User.objects.get(id=userid).cookie
-        return JsonResponse({"num": '2', "errmesage": "Payment Failed, Please Retry", "cookie": cookie})
+        return JsonResponse({"num":'2',"errmesage":"Payment Failed, Please Retry","cookie":cookie,
+                             "out_trade_no":payorder.out_trade_no})

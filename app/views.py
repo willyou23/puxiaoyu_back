@@ -71,10 +71,24 @@ def updateProfileInfo(request):
     phoneNumber = request.POST.get('phoneNumber')
     email = request.POST.get('email')
     address = request.POST.get('address')
+    # security value
+    # securityProblem = int(request.POST.get('value'))
+    securityProblem = request.POST.get('value')
+    securityAnswer = request.POST.get('securityAnswer')
+    print('获取到答案值'+ securityAnswer )
+    print('获取到所有数据，传到更新函数中')
     return staticFunc.JsonPackage(User(cookie=cookie).updateProfileInfo(username=username,
                                                                         phoneNumber=phoneNumber,
                                                                         email=email,
-                                                                        address=address))
+                                                                        address=address,
+                                                                        securityProblem=securityProblem,
+                                                                        securityAnswer=securityAnswer
+                                                                        ))
+    # return staticFunc.JsonPackage(User(cookie=cookie).updateProfileInfo(username=username,
+    #                                                                     phoneNumber=phoneNumber,
+    #                                                                     email=email,
+    #                                                                     address=address))
+
 
 
 def validateId(request):
